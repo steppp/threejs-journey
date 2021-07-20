@@ -64,6 +64,9 @@ float cnoise(vec2 P)
 
 void main()
 {
+    vec3 blackColor = vec3(0.0);
+    vec3 uvColor = vec3(vUv, 0.4);
+
     // pattern 1
     // gl_FragColor = vec4(vUv, 1.0, 1.0);
 
@@ -130,15 +133,19 @@ void main()
     // do for both axes and sum the results (join the two sets)
     // float barX = step(0.4, mod(vUv.x * 10.0, 1.0)) * step(0.8, mod(vUv.y * 10.0, 1.0));
     // float barY = step(0.8, mod(vUv.x * 10.0, 1.0)) * step(0.4, mod(vUv.y * 10.0, 1.0));
-    // float strenght = barX + barY;
-    // gl_FragColor = vec4(vec3(strenght), 1.0);
+    // float strength = barX + barY;
+    // vec3 mixedColor = mix(blackColor, uvColor, strength);
+    // gl_FragColor = vec4(vec3(mixedColor), 1.0);
 
     // pattern 15
     // adding an offset to the first mod argument makes the value move in some direction
-    // float barX = step(0.4, mod(vUv.x * 10.0 - 0.2, 1.0)) * step(0.8, mod(vUv.y * 10.0, 1.0));
-    // float barY = step(0.8, mod(vUv.x * 10.0, 1.0)) * step(0.4, mod(vUv.y * 10.0 - 0.2, 1.0));
-    // float strenght = barX + barY;
-    // gl_FragColor = vec4(vec3(strenght), 1.0);
+    float barX = step(0.4, mod(vUv.x * 10.0 - 0.2, 1.0)) * step(0.8, mod(vUv.y * 10.0, 1.0));
+    float barY = step(0.8, mod(vUv.x * 10.0, 1.0)) * step(0.4, mod(vUv.y * 10.0 - 0.2, 1.0));
+    float strength = barX + barY;
+    // in the intersections the output value is higher than 1
+    strength = clamp(strength, 0.0, 1.0);
+    vec3 mixedColor = mix(blackColor, uvColor, strength);
+    gl_FragColor = vec4(vec3(mixedColor), 1.0);
 
     // pattern 16
     // subtract 0.5 from uv x value to range from -0.5, 0.5
@@ -196,9 +203,10 @@ void main()
     // pattern 24
     // combination of the two previous ones
     // vec2 gridUv = vec2(floor(vUv.x * 10.0) / 10.0, floor(vUv.y * 10.0) / 10.0);
-    // random creates a pseudo-random grid for every element in the input matric
+    // // random creates a pseudo-random grid for every element in the input matrix
     // float strength = random(gridUv);
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    // vec3 mixedColor = mix(blackColor, uvColor, strength);
+    // gl_FragColor = vec4(vec3(mixedColor), 1.0);
 
     // pattern 25
     // same as before, but the tilt effect is obtained adding half the value
@@ -282,7 +290,8 @@ void main()
     //     vUv.y + sin(vUv.x * 30.0) * 0.1
     // );
     // float strength = 1.0 - step(0.01, abs(distance(wavedUv, vec2(0.5)) - 0.25));
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    // vec3 mixedColor = mix(blackColor, uvColor, strength);
+    // gl_FragColor = vec4(vec3(mixedColor), 1.0);
 
     // pattern 38
     // apply the same function as before to the x values too
@@ -291,7 +300,8 @@ void main()
     //     vUv.y + sin(vUv.x * 30.0) * 0.1
     // );
     // float strength = 1.0 - step(0.01, abs(distance(wavedUv, vec2(0.5)) - 0.25));
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    // vec3 mixedColor = mix(blackColor, uvColor, strength);
+    // gl_FragColor = vec4(vec3(mixedColor), 1.0);
 
     // pattern 39
     // increase the sin frequency to have a psychedelic effect
@@ -300,7 +310,8 @@ void main()
     //     vUv.y + sin(vUv.x * 100.0) * 0.1
     // );
     // float strength = 1.0 - step(0.01, abs(distance(wavedUv, vec2(0.5)) - 0.25));
-    // gl_FragColor = vec4(vec3(strength), 1.0);
+    // vec3 mixedColor = mix(blackColor, uvColor, strength);
+    // gl_FragColor = vec4(vec3(mixedColor), 1.0);
 
     // pattern 40
     // actually the angle of the uv, calculated using atan
@@ -364,7 +375,8 @@ void main()
     // float strength = sin(cnoise(vUv * 10.0) * 20.0);
     // gl_FragColor = vec4(vec3(strength), 1.0);
 
-    // pattern 49
-    float strength = step(0.8, sin(cnoise(vUv * 10.0) * 20.0));
-    gl_FragColor = vec4(vec3(strength), 1.0);
+    // pattern 50
+    // float strength = step(0.8, sin(cnoise(vUv * 10.0) * 20.0));
+    // vec3 mixedColor = mix(blackColor, uvColor, strength);
+    // gl_FragColor = vec4(vec3(mixedColor), 1.0);
 }
