@@ -12,6 +12,9 @@ import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
 
+import customPassVertexShader from './shaders/vertex.glsl' 
+import customPassFragmentShader from './shaders/fragment.glsl'
+
 /**
  * Base
  */
@@ -214,16 +217,33 @@ rgbShiftPass.enabled = false
 effectComposer.addPass(rgbShiftPass)
 
 const unrealBloomPass = new UnrealBloomPass()
+unrealBloomPass.enabled = false
 effectComposer.addPass(unrealBloomPass)
 
-unrealBloomPass.strength = 0.3
-unrealBloomPass.radius = 1
-unrealBloomPass.threshold = 0.6
+// unrealBloomPass.strength = 0.3
+// unrealBloomPass.radius = 1
+// unrealBloomPass.threshold = 0.6
 
-gui.add(unrealBloomPass, 'enabled')
-gui.add(unrealBloomPass, 'strength').min(0).max(2).step(0.001)
-gui.add(unrealBloomPass, 'radius').min(0).max(2).step(0.001)
-gui.add(unrealBloomPass, 'threshold').min(0).max(1).step(0.001)
+// gui.add(unrealBloomPass, 'enabled')
+// gui.add(unrealBloomPass, 'strength').min(0).max(2).step(0.001)
+// gui.add(unrealBloomPass, 'radius').min(0).max(2).step(0.001)
+// gui.add(unrealBloomPass, 'threshold').min(0).max(1).step(0.001)
+
+// custom pass
+const TintShader = {
+  uniforms: {
+    // this uniform will contain the texture from the previous pass
+    // setting the value to null since the EffectComposer will update it
+    tDiffuse: {
+      value: null
+    }
+  },
+  vertexShader: customPassVertexShader,
+  fragmentShader: customPassFragmentShader
+}
+
+const tintPass = new ShaderPass(TintShader)
+effectComposer.addPass(tintPass)
 
 /**
  * Animate
