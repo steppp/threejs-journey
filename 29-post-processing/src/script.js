@@ -12,8 +12,10 @@ import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
 
-import customPassVertexShader from './shaders/vertex.glsl' 
-import customPassFragmentShader from './shaders/fragment.glsl'
+import tintVertexShader from './shaders/tint/vertex.glsl' 
+import tintFragmentShader from './shaders/tint/fragment.glsl'
+import displacementVertexShader from './shaders/displacement/vertex.glsl' 
+import displacementFragmentShader from './shaders/displacement/fragment.glsl'
 
 /**
  * Base
@@ -236,14 +238,48 @@ const TintShader = {
     // setting the value to null since the EffectComposer will update it
     tDiffuse: {
       value: null
-    }
+    },
+    uTint: { value: null }
   },
-  vertexShader: customPassVertexShader,
-  fragmentShader: customPassFragmentShader
+  vertexShader: tintVertexShader,
+  fragmentShader: tintFragmentShader
 }
 
 const tintPass = new ShaderPass(TintShader)
+tintPass.material.uniforms.uTint.value = new THREE.Vector3()
 effectComposer.addPass(tintPass)
+
+gui.add(tintPass.material.uniforms.uTint.value, 'x')
+  .min(-1)
+  .max(1)
+  .step(0.001)
+  .name('red')
+gui.add(tintPass.material.uniforms.uTint.value, 'y')
+  .min(-1)
+  .max(1)
+  .step(0.001)
+  .name('green')
+gui.add(tintPass.material.uniforms.uTint.value, 'z')
+  .min(-1)
+  .max(1)
+  .step(0.001)
+  .name('blue')
+
+const DisplacementShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uTime: { value: null },
+    uNormalMap: { value: null }
+  },
+  vertexShader: displacementVertexShader,
+  fragmentShader: displacementFragmentShader
+}
+
+const displacementPass = new ShaderPass(DisplacementShader)
+displacementPass.material.uniforms.uTime.value = 0
+displacementPass.material.uniforms.uNormalMap.value =
+  textureLoader.load('/textures/interfaceNormalMap.png')
+effectComposer.addPass(displacementPass)
 
 /**
  * Animate
@@ -256,10 +292,13 @@ const debugObject = {
     console.log(elapsedTime)
   }
 }
-gui.add(debugObject, 'logVariables');
+gui.add(debugObject, 'logVariables')
 
 const tick = () => {
   elapsedTime = clock.getElapsedTime()
+
+  // Update passes
+  displacementPass.material.uniforms.uTime.value = elapsedTime
 
   // Update controls
   controls.update()
