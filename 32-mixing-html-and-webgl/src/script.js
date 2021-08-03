@@ -4,6 +4,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { gsap } from 'gsap'
 
+let sceneReady = false
+
 /**
  * Loaders
  */
@@ -24,6 +26,10 @@ const loadingManager = new THREE.LoadingManager(
       loadingBarElement.classList.add('ended')
       loadingBarElement.style.transform = ''
     }, 500)
+
+    window.setTimeout(() => {
+      sceneReady = true
+    }, 2000)
   },
 
   // Progress
@@ -75,6 +81,23 @@ const overlayMaterial = new THREE.ShaderMaterial({
 })
 const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial)
 scene.add(overlay)
+
+const points = [
+  {
+      position: new THREE.Vector3(1.55, 0.3, - 0.6),
+      element: document.querySelector('.point-0')
+  },
+  {
+      position: new THREE.Vector3(0.5, 0.8, - 1.6),
+      element: document.querySelector('.point-1')
+  },
+  {
+      position: new THREE.Vector3(1.6, - 1.3, - 0.7),
+      element: document.querySelector('.point-2')
+  }
+]
+
+const raycaster = new THREE.Raycaster()
 
 /**
  * Update all materials
@@ -194,8 +217,46 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  * Animate
  */
 const tick = () => {
+
   // Update controls
   controls.update()
+
+  if (sceneReady) {
+    for (const point of points) {
+      // get the screen position of the point using the project method
+      // passing the camera as argument
+      const screenPosition = point.position.clone()
+      screenPosition.project(camera)
+  
+      // raycast to our point starting from the provided camera
+      raycaster.setFromCamera(screenPosition, camera)
+      const intersects = raycaster.intersectObjects(scene.children, true)
+      if (intersects.length === 0) {
+        // no intersections, we can show the point
+        point.element.classList.add('visible')
+      } else {
+        // the ray intersects at least an object in the scene
+        // intersections are sorted by distance, so we can only test
+        // the first one since it is the closest
+        const intersectionDistance = intersects[0].distance
+        const pointDistance = point.position.distanceTo(camera.position)
+  
+        if (intersectionDistance < pointDistance) {
+          // the ray first intersects with the object, then with the camera
+          // -> hide the point
+          point.element.classList.remove('visible')
+        } else {
+          point.element.classList.add('visible')
+        }
+      }
+  
+      const translateX = screenPosition.x * sizes.width * 0.5
+      // css y coordinate is inverted w.r.t. the same in WebGL coordinates
+      const translateY = - screenPosition.y * sizes.height * 0.5
+      point.element.style.transform =
+        `translateX(${translateX}px) translateY(${translateY}px)`
+    }
+  }
 
   // Render
   renderer.render(scene, camera)
